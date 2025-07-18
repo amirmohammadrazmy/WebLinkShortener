@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
+    "flask>=3.1.1",
+    "requests>=2.32.4",
     "selenium>=4.34.2",
     "webdriver-manager>=4.0.2",
 ]

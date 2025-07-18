@@ -2,7 +2,7 @@ modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["geckodriver", "chromium", "chromedriver", "glib", "nss", "xorg.libxcb"]
+packages = ["chromedriver", "chromium", "geckodriver", "glib", "nss", "xorg.libxcb"]
 
 [workflows]
 runButton = "Project"
@@ -20,6 +20,10 @@ args = "URL Shortener Setup"
 task = "workflow.run"
 args = "url_shortener_test"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Web Server"
+
 [[workflows.workflow]]
 name = "URL Shortener Setup"
 author = "agent"
@@ -35,3 +39,16 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "pip install selenium webdriver-manager && python main.py --username test_user --password test_pass --headless --verbose"
+
+[[workflows.workflow]]
+name = "Web Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python web_server.py"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
