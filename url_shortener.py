@@ -88,10 +88,19 @@ class URLShortener:
         """Login to 2ad.ir website"""
         try:
             self.logger.info("Navigating to 2ad.ir signin page")
-            self.driver.get("https://2ad.ir/auth/signin")
             
-            # Wait for page to load
-            time.sleep(3)
+            # Try multiple attempts to load the page
+            for attempt in range(3):
+                try:
+                    self.driver.get("https://2ad.ir/auth/signin")
+                    # Wait for page to load
+                    time.sleep(5)
+                    break
+                except Exception as e:
+                    self.logger.warning(f"Attempt {attempt + 1} failed to load signin page: {str(e)}")
+                    if attempt == 2:
+                        raise e
+                    time.sleep(10)
             
             # Find and fill username field
             username_field = self.wait.until(
@@ -110,12 +119,20 @@ class URLShortener:
             login_button.click()
             
             # Wait for login to complete and redirect to dashboard
-            time.sleep(5)
+            time.sleep(8)
             
             # Navigate to dashboard
             self.logger.info("Navigating to dashboard")
-            self.driver.get(self.selectors['dashboard_url'])
-            time.sleep(3)
+            for attempt in range(3):
+                try:
+                    self.driver.get(self.selectors['dashboard_url'])
+                    time.sleep(5)
+                    break
+                except Exception as e:
+                    self.logger.warning(f"Attempt {attempt + 1} failed to load dashboard: {str(e)}")
+                    if attempt == 2:
+                        raise e
+                    time.sleep(10)
             
             # Check if we're on dashboard page
             if self.selectors['dashboard_url'] in self.driver.current_url:
