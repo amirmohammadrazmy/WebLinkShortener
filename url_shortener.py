@@ -48,30 +48,63 @@ class URLShortener:
         try:
             chrome_options = Options()
             
-            # Add essential Chrome options for Replit environment
-            chrome_options.add_argument('--headless=new')
+            # Add essential Chrome options
+            if self.config.headless:
+                chrome_options.add_argument('--headless=new')
+            
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--disable-web-security')
             chrome_options.add_argument('--disable-features=VizDisplayCompositor')
             chrome_options.add_argument('--window-size=1920,1080')
-            chrome_options.add_argument('--remote-debugging-port=9222')
-            chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36')
+            chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36')
             
-            # Set Chrome binary path for Replit environment
-            chrome_options.binary_location = '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium-browser'
+            # For local Windows environment, don't set binary_location
+            # Chrome will be found automatically
             
-            # Try using system chromedriver first
-            try:
-                service = Service('/usr/bin/chromedriver')
-                self.driver = webdriver.Chrome(service=service, options=chrome_options)
-                self.logger.info("Using system ChromeDriver")
-            except:
-                # Fallback to webdriver-manager with specific Chrome version
-                self.logger.info("System ChromeDriver not found, using webdriver-manager")
-                service = Service(ChromeDriverManager(driver_version="125.0.6422.78").install())
-                self.driver = webdriver.Chrome(service=service, options=chrome_options)
+            # Try different approaches for ChromeDriver
+            driver_initialized = False
+            
+            # Method 1: Use webdriver-manager with auto-detection
+            if not driver_initialized:
+                try:
+                    self.logger.info("Attempting to use webdriver-manager with auto-detection")
+                    service = Service(ChromeDriverManager().install())
+                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                    driver_initialized = True
+                    self.logger.info("WebDriver initialized with auto-detection")
+                except Exception as e:
+                    self.logger.warning(f"Auto-detection failed: {e}")
+            
+            # Method 2: Try system ChromeDriver
+            if not driver_initialized:
+                try:
+                    self.logger.info("Attempting to use system ChromeDriver")
+                    service = Service()  # Uses system PATH
+                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                    driver_initialized = True
+                    self.logger.info("WebDriver initialized with system ChromeDriver")
+                except Exception as e:
+                    self.logger.warning(f"System ChromeDriver failed: {e}")
+            
+            # Method 3: Force latest version download
+            if not driver_initialized:
+                try:
+                    self.logger.info("Forcing latest ChromeDriver download")
+                    service = Service(ChromeDriverManager(cache_valid_range=1).install())
+                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                    driver_initialized = True
+                    self.logger.info("WebDriver initialized with forced download")
+                except Exception as e:
+                    self.logger.error(f"All ChromeDriver methods failed: {e}")
+                    raise
+            
+            if not driver_initialized:
+                raise WebDriverException("Failed to initialize ChromeDriver with any method")
             
             self.driver.set_page_load_timeout(180)  # 3 minutes timeout for page loads
             

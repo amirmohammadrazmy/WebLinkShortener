@@ -2,21 +2,54 @@
 # -*- coding: utf-8 -*-
 """
 Local version of 2ad.ir URL Shortener for better performance with Iranian IP
+Fixed ChromeDriver version compatibility
 """
 
 import argparse
 import os
 import sys
 import logging
+import subprocess
 from datetime import datetime
 from url_shortener import URLShortener
 from config import Config
 from utils import setup_logging, validate_files
 
+def check_chrome_compatibility():
+    """Check and fix Chrome/ChromeDriver compatibility"""
+    try:
+        print("🔍 Checking Chrome compatibility...")
+        
+        # Try to import selenium
+        from selenium import webdriver
+        from webdriver_manager.chrome import ChromeDriverManager
+        
+        # Test basic driver setup
+        print("✅ Selenium imported successfully")
+        return True
+        
+    except Exception as e:
+        print(f"⚠️ Chrome compatibility issue detected: {e}")
+        print("🔧 Running automatic fix...")
+        
+        try:
+            # Run fix script
+            subprocess.run([sys.executable, 'fix_chrome_version.py'], check=True)
+            return True
+        except:
+            print("❌ Auto-fix failed. Please run: python fix_chrome_version.py")
+            return False
+
 def main():
     """Main function optimized for local execution"""
-    print("🚀 2ad.ir URL Shortener - Local Version")
-    print("=" * 50)
+    print("🚀 2ad.ir URL Shortener - Enhanced Local Version")
+    print("=" * 55)
+    
+    # Check Chrome compatibility first
+    if not check_chrome_compatibility():
+        print("\n❌ Chrome compatibility check failed")
+        print("💡 Please run: python fix_chrome_version.py")
+        return 1
     
     # Get credentials from user
     username = input("نام کاربری 2ad.ir: ")
