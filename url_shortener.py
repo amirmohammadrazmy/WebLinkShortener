@@ -69,18 +69,7 @@ class URLShortener:
             # Try different approaches for ChromeDriver
             driver_initialized = False
             
-            # Method 1: Use webdriver-manager with auto-detection
-            if not driver_initialized:
-                try:
-                    self.logger.info("Attempting to use webdriver-manager with auto-detection")
-                    service = Service(ChromeDriverManager().install())
-                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
-                    driver_initialized = True
-                    self.logger.info("WebDriver initialized with auto-detection")
-                except Exception as e:
-                    self.logger.warning(f"Auto-detection failed: {e}")
-            
-            # Method 2: Try system ChromeDriver
+            # Method 1: Try system ChromeDriver first (fastest)
             if not driver_initialized:
                 try:
                     self.logger.info("Attempting to use system ChromeDriver")
@@ -91,14 +80,49 @@ class URLShortener:
                 except Exception as e:
                     self.logger.warning(f"System ChromeDriver failed: {e}")
             
-            # Method 3: Force latest version download
+            # Method 2: Use specific stable version (avoids latest version issues)
             if not driver_initialized:
                 try:
-                    self.logger.info("Forcing latest ChromeDriver download")
-                    service = Service(ChromeDriverManager(cache_valid_range=1).install())
+                    self.logger.info("Attempting to use stable ChromeDriver version 131.0.6778.87")
+                    service = Service(ChromeDriverManager(version="131.0.6778.87").install())
                     self.driver = webdriver.Chrome(service=service, options=chrome_options)
                     driver_initialized = True
-                    self.logger.info("WebDriver initialized with forced download")
+                    self.logger.info("WebDriver initialized with stable version")
+                except Exception as e:
+                    self.logger.warning(f"Stable version failed: {e}")
+            
+            # Method 3: Use latest available (with timeout)
+            if not driver_initialized:
+                try:
+                    self.logger.info("Attempting latest ChromeDriver with timeout")
+                    import signal
+                    
+                    def timeout_handler(signum, frame):
+                        raise TimeoutException("ChromeDriver download timeout")
+                    
+                    # Set 30 second timeout
+                    signal.signal(signal.SIGALRM, timeout_handler)
+                    signal.alarm(30)
+                    
+                    try:
+                        service = Service(ChromeDriverManager().install())
+                        self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                        driver_initialized = True
+                        self.logger.info("WebDriver initialized with latest version")
+                    finally:
+                        signal.alarm(0)  # Cancel timeout
+                        
+                except Exception as e:
+                    self.logger.warning(f"Latest version with timeout failed: {e}")
+            
+            # Method 4: Fallback to older known working version
+            if not driver_initialized:
+                try:
+                    self.logger.info("Fallback to known working version 130.0.6723.116")
+                    service = Service(ChromeDriverManager(version="130.0.6723.116").install())
+                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                    driver_initialized = True
+                    self.logger.info("WebDriver initialized with fallback version")
                 except Exception as e:
                     self.logger.error(f"All ChromeDriver methods failed: {e}")
                     raise

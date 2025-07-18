@@ -3,12 +3,15 @@
 """
 Chrome Version Fix Script
 Automatically fixes ChromeDriver version compatibility issues
+Specifically handles latest Chrome versions that don't have matching ChromeDriver yet
 """
 
 import os
 import sys
 import subprocess
 import shutil
+import requests
+import json
 from pathlib import Path
 
 def get_chrome_version():
@@ -52,13 +55,55 @@ def clear_webdriver_cache():
         print(f"❌ Error clearing cache: {e}")
         return False
 
+def get_compatible_chromedriver_version():
+    """Get compatible ChromeDriver version for installed Chrome"""
+    try:
+        # Get available ChromeDriver versions
+        url = "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json"
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        
+        versions = [v['version'] for v in data['versions']]
+        
+        # Get installed Chrome version
+        chrome_version = get_chrome_version()
+        if not chrome_version:
+            return "131.0.6778.87"  # Fallback stable version
+        
+        # Find compatible version
+        chrome_major = chrome_version.split('.')[0]
+        
+        # Look for exact match first
+        for version in reversed(versions):
+            if version.startswith(chrome_major):
+                return version
+        
+        # Fallback to last known stable
+        return "131.0.6778.87"
+        
+    except Exception as e:
+        print(f"⚠️ Could not determine compatible version: {e}")
+        return "131.0.6778.87"
+
 def install_compatible_chromedriver():
     """Install compatible ChromeDriver"""
     try:
         print("🔄 Installing compatible ChromeDriver...")
         
+        # Get compatible version
+        compatible_version = get_compatible_chromedriver_version()
+        print(f"📋 Using ChromeDriver version: {compatible_version}")
+        
         # Force reinstall selenium and webdriver-manager
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', '--force-reinstall', 'selenium', 'webdriver-manager'], check=True)
+        
+        # Pre-download the compatible version
+        try:
+            from webdriver_manager.chrome import ChromeDriverManager
+            ChromeDriverManager(version=compatible_version).install()
+            print("✅ Compatible ChromeDriver pre-downloaded")
+        except:
+            print("⚠️ Pre-download failed, will try during runtime")
         
         print("✅ ChromeDriver dependencies updated")
         return True
