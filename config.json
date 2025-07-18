@@ -1,0 +1,19 @@
+{
+  "batch_size": 10,
+  "delay": 2.0,
+  "headless": false,
+  "output_dir": "output",
+  "input_files": [
+    "input/links_file1.txt",
+    "input/links_file2.txt"
+  ],
+  "selectors": {
+    "username_field": "input[name=\"username\"]",
+    "password_field": "input[name=\"password\"]",
+    "login_button": "button[type=\"submit\"]",
+    "url_input": "input[name=\"url\"]",
+    "shorten_button": "button[id=\"shorten\"]",
+    "result_field": "input[id=\"short-url\"]",
+    "logout_link": "a[href*=\"logout\"]"
+  }
+}

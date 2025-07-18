@@ -1,0 +1,9 @@
+# نمونه فایل لینک دوم
+# لینک‌های خود را اینجا بگذارید، هر خط یک لینک
+# فایل نام: output_links
+
+https://youtube.com
+https://wikipedia.org
+https://reddit.com
+https://twitter.com
+https://facebook.com

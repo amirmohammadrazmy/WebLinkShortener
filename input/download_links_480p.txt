@@ -1,0 +1,9 @@
+# نمونه فایل لینک اول
+# لینک‌های خود را اینجا بگذارید، هر خط یک لینک
+# فایل نام: download_links_480p
+
+https://example.com
+https://google.com
+https://github.com
+https://stackoverflow.com
+https://python.org
