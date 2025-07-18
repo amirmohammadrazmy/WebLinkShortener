@@ -73,7 +73,9 @@ class URLShortener:
                 service = Service(ChromeDriverManager(driver_version="125.0.6422.78").install())
                 self.driver = webdriver.Chrome(service=service, options=chrome_options)
             
-            self.wait = WebDriverWait(self.driver, 30)
+            self.driver.set_page_load_timeout(180)  # 3 minutes timeout for page loads
+            
+            self.wait = WebDriverWait(self.driver, 60)
             
             self.logger.info("WebDriver initialized successfully")
             return True
